@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AbhiHelper – Student Delivery Service</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #f7f4ef; --white: #ffffff; --orange: #ff5c1a;
+      --orange2: #ff8c5a; --green: #1db954; --dark: #1a1a1a;
+      --muted: #888; --border: rgba(0,0,0,0.08);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); font-family: 'Nunito', sans-serif; color: var(--dark); min-height: 100vh; }
+
+    /* PAGE SYSTEM */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* NAV */
+    nav {
+      background: var(--white); padding: 1rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 2px solid var(--orange);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 20px rgba(255,92,26,0.1);
+    }
+    .logo { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--orange); }
+    .logo span { color: var(--dark); }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .nav-tag { background: var(--orange); color: white; font-size: 0.72rem; padding: 0.3rem 0.8rem; border-radius: 20px; font-weight: 700; }
+    .nav-user { font-size: 0.85rem; font-weight: 700; color: var(--dark); display: none; }
+    .nav-logout { background: none; border: 1.5px solid var(--border); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; cursor: pointer; color: var(--muted); display: none; transition: all 0.2s; }
+    .nav-logout:hover { border-color: var(--orange); color: var(--orange); }
+
+    /* ===== LOGIN PAGE ===== */
+    .login-page {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #fff5f0 0%, #f7f4ef 100%);
+      padding: 2rem 1rem;
+    }
+    .login-box {
+      background: white; border-radius: 20px; padding: 3rem 2.5rem;
+      width: 100%; max-width: 420px;
+      border: 1.5px solid var(--border);
+      box-shadow: 0 20px 60px rgba(255,92,26,0.1);
+      animation: fadeUp 0.5s ease both;
+    }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+    .login-logo { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--orange); margin-bottom: 0.3rem; }
+    .login-logo span { color: var(--dark); }
+    .login-tagline { color: var(--muted); font-size: 0.88rem; margin-bottom: 2.5rem; }
+    .login-title { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .login-sub { color: var(--muted); font-size: 0.88rem; margin-bottom: 2rem; line-height: 1.6; }
+
+    .form-group { margin-bottom: 1.2rem; }
+    label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.45rem; }
+    .phone-input-wrap { display: flex; border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg); transition: border-color 0.25s, box-shadow 0.25s; }
+    .phone-input-wrap:focus-within { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,92,26,0.1); background: white; }
+    .phone-prefix { padding: 0.85rem 1rem; font-weight: 700; color: var(--muted); font-size: 0.95rem; background: rgba(0,0,0,0.03); border-right: 1.5px solid var(--border); }
+    .phone-input-wrap input { flex: 1; padding: 0.85rem 1rem; border: none; background: transparent; font-family: 'Nunito', sans-serif; font-size: 0.95rem; color: var(--dark); outline: none; }
+    input, textarea, select {
+      width: 100%; padding: 0.85rem 1rem; border: 1.5px solid var(--border);
+      border-radius: 10px; font-family: 'Nunito', sans-serif; font-size: 0.95rem;
+      color: var(--dark); background: var(--bg); transition: border-color 0.25s, box-shadow 0.25s; outline: none;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,92,26,0.1); background: white; }
+    textarea { resize: vertical; min-height: 90px; }
+
+    .main-btn {
+      width: 100%; padding: 1rem; background: var(--orange); color: white;
+      border: none; border-radius: 12px; font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: all 0.3s; letter-spacing: 0.02em;
+    }
+    .main-btn:hover { background: #e04d10; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,92,26,0.35); }
+    .main-btn:active { transform: translateY(0); }
+    .main-btn:disabled { background: var(--muted); transform: none; box-shadow: none; cursor: not-allowed; }
+
+    /* OTP INPUTS */
+    .otp-wrap { display: flex; gap: 0.7rem; justify-content: center; margin: 1.5rem 0; }
+    .otp-input {
+      width: 52px; height: 58px; text-align: center; font-size: 1.4rem;
+      font-weight: 800; border: 2px solid var(--border); border-radius: 12px;
+      background: var(--bg); color: var(--dark); font-family: 'Syne', sans-serif;
+      transition: all 0.2s;
+    }
+    .otp-input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,92,26,0.1); background: white; outline: none; }
+    .otp-input.filled { border-color: var(--orange); background: #fff5f0; }
+
+    .demo-otp-box {
+      background: #fff9f0; border: 1.5px dashed var(--orange2);
+      border-radius: 10px; padding: 1rem; text-align: center;
+      margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--dark);
+    }
+    .demo-otp-box strong { font-size: 1.3rem; color: var(--orange); font-family: 'Syne', sans-serif; letter-spacing: 0.15em; }
+
+    .resend-row { text-align: center; margin-top: 1rem; font-size: 0.83rem; color: var(--muted); }
+    .resend-btn { background: none; border: none; color: var(--orange); font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; font-size: 0.83rem; }
+    .resend-btn:disabled { color: var(--muted); cursor: not-allowed; }
+    .back-btn { background: none; border: none; color: var(--muted); font-size: 0.83rem; cursor: pointer; font-family: 'Nunito', sans-serif; margin-top: 0.8rem; display: block; width: 100%; text-align: center; }
+    .back-btn:hover { color: var(--dark); }
+
+    /* ===== HERO ===== */
+    .hero {
+      background: linear-gradient(135deg, #fff5f0 0%, #fff9f5 100%);
+      padding: 4rem 2rem 3rem; text-align: center; position: relative; overflow: hidden;
+    }
+    .hero::before { content: ''; position: absolute; top: -50%; left: -20%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(255,92,26,0.06) 0%, transparent 70%); pointer-events: none; }
+    .hero-emoji { font-size: 3.5rem; margin-bottom: 1rem; animation: bounce 2s infinite; }
+    @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    .hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(2.2rem, 6vw, 3.5rem); font-weight: 800; line-height: 1.1; margin-bottom: 1rem; }
+    .hero h1 span { color: var(--orange); }
+    .hero p { color: var(--muted); font-size: 1.05rem; max-width: 480px; margin: 0 auto 2rem; line-height: 1.7; }
+    .hero-badges { display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap; }
+    .badge { background: var(--white); border: 1.5px solid var(--border); padding: 0.45rem 1rem; border-radius: 20px; font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; }
+
+    /* ===== ORDER FORM ===== */
+    .form-section { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+    .step-card { background: var(--white); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; border: 1.5px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.05); animation: fadeUp 0.5s ease both; }
+    .step-header { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem; }
+    .step-num { width: 36px; height: 36px; border-radius: 50%; background: var(--orange); color: white; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.9rem; flex-shrink: 0; }
+    .step-title { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 700; }
+    .location-row { display: flex; gap: 0.8rem; }
+    .location-row input { flex: 1; }
+    .locate-btn { padding: 0.85rem 1rem; background: var(--orange); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1.2rem; transition: background 0.2s, transform 0.2s; white-space: nowrap; }
+    .locate-btn:hover { background: #e04d10; transform: scale(1.05); }
+    .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .cat-btn { padding: 1rem; border: 2px solid var(--border); border-radius: 12px; background: var(--bg); cursor: pointer; text-align: center; transition: all 0.2s; font-family: 'Nunito', sans-serif; }
+    .cat-btn .cat-icon { font-size: 1.8rem; display: block; margin-bottom: 0.4rem; }
+    .cat-btn .cat-name { font-size: 0.88rem; font-weight: 700; }
+    .cat-btn .cat-sub { font-size: 0.72rem; color: var(--muted); }
+    .cat-btn:hover { border-color: var(--orange2); background: #fff5f0; }
+    .cat-btn.active { border-color: var(--orange); background: #fff0ea; }
+    .items-section { display: none; }
+    .items-section.show { display: block; }
+    .item-list { display: flex; flex-direction: column; gap: 0.7rem; margin-bottom: 1rem; }
+    .item-row { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1rem; background: var(--bg); border-radius: 10px; border: 1.5px solid var(--border); }
+    .item-name { flex: 1; font-weight: 600; font-size: 0.9rem; }
+    .item-price { color: var(--orange); font-weight: 700; font-size: 0.88rem; }
+    .qty-control { display: flex; align-items: center; gap: 0.5rem; }
+    .qty-btn { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--orange); background: white; color: var(--orange); font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .qty-btn:hover { background: var(--orange); color: white; }
+    .qty-num { font-weight: 700; min-width: 20px; text-align: center; }
+    .add-custom { margin-top: 0.5rem; }
+    .custom-row { display: flex; gap: 0.6rem; }
+    .custom-row input { flex: 1; }
+    .add-btn { padding: 0.85rem 1.2rem; background: var(--dark); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.85rem; white-space: nowrap; transition: background 0.2s; }
+    .add-btn:hover { background: #333; }
+    .summary-box { background: linear-gradient(135deg, #fff5f0, #fff9f5); border: 2px solid var(--orange); border-radius: 12px; padding: 1.2rem; margin-top: 1rem; }
+    .summary-title { font-weight: 700; margin-bottom: 0.8rem; font-size: 0.9rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .summary-items { list-style: none; }
+    .summary-items li { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 0.3rem 0; border-bottom: 1px dashed rgba(0,0,0,0.08); }
+    .summary-items li:last-child { border: none; }
+    .summary-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 1rem; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 2px solid var(--orange); color: var(--orange); }
+    .submit-btn { width: 100%; padding: 1.1rem; background: var(--orange); color: white; border: none; border-radius: 12px; font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; cursor: pointer; letter-spacing: 0.02em; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    .submit-btn:hover { background: #e04d10; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,92,26,0.35); }
+
+    /* SUCCESS */
+    .success-screen { display: none; text-align: center; padding: 3rem 2rem; background: white; border-radius: 16px; border: 2px solid var(--green); margin: 2rem 1.5rem; }
+    .success-screen.show { display: block; }
+    .success-icon { font-size: 4rem; margin-bottom: 1rem; animation: pop 0.5s ease; }
+    @keyframes pop { 0%{transform:scale(0)} 80%{transform:scale(1.2)} 100%{transform:scale(1)} }
+    .success-screen h2 { font-family: 'Syne', sans-serif; font-size: 1.8rem; margin-bottom: 0.8rem; }
+    .success-screen p { color: var(--muted); line-height: 1.7; margin-bottom: 1.5rem; }
+    .order-id { background: var(--bg); border-radius: 10px; padding: 1rem; font-weight: 700; font-size: 1.1rem; color: var(--orange); letter-spacing: 0.05em; margin-bottom: 1.5rem; }
+    .new-order-btn { padding: 0.9rem 2rem; background: var(--dark); color: white; border: none; border-radius: 10px; font-family: 'Syne', sans-serif; font-weight: 700; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+    .new-order-btn:hover { background: #333; }
+
+    footer { text-align: center; padding: 2rem 1rem; font-size: 0.78rem; color: var(--muted); }
+
+    @media (max-width: 480px) {
+      .login-box { padding: 2rem 1.5rem; }
+      .otp-input { width: 44px; height: 52px; font-size: 1.2rem; }
+      .hero h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Abhi<span>Helper</span></div>
+  <div class="nav-right">
+    <span class="nav-user" id="navUser"></span>
+    <button class="nav-logout" id="navLogout" onclick="logout()">Logout</button>
+    <div class="nav-tag" id="navTag">🎓 Students ke liye</div>
+  </div>
+</nav>
+
+<!-- ========== PAGE 1: LOGIN ========== -->
+<div class="page active" id="loginPage">
+  <div class="login-page">
+    <div class="login-box">
+      <div class="login-logo">Abhi<span>Helper</span></div>
+      <div class="login-tagline">🎓 Prayagraj Students ke liye</div>
+      <div class="login-title">Login karo 👋</div>
+      <div class="login-sub">Apna mobile number dalo — hum ek OTP bhejenge verify karne ke liye.</div>
+      <div class="form-group">
+        <label>Mobile Number</label>
+        <div class="phone-input-wrap">
+          <div class="phone-prefix">🇮🇳 +91</div>
+          <input type="tel" id="loginPhone" placeholder="10 digit number" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter') sendOTP()"/>
+        </div>
+      </div>
+      <button class="main-btn" onclick="sendOTP()" id="sendOtpBtn">Send OTP 📲</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE 2: OTP VERIFY ========== -->
+<div class="page" id="otpPage">
+  <div class="login-page">
+    <div class="login-box">
+      <div class="login-logo">Abhi<span>Helper</span></div>
+      <div class="login-tagline">🎓 Prayagraj Students ke liye</div>
+      <div class="login-title">OTP Enter Karo 🔐</div>
+      <div class="login-sub" id="otpSubtext">+91 XXXXXXXXXX par 6-digit OTP bheja gaya hai.</div>
+
+      <!-- Demo OTP box -->
+      <div class="demo-otp-box">
+        🧪 <strong>Demo Mode</strong> — Real SMS nahi jayega<br/>
+        Tumhara OTP hai: <strong id="demoOtpDisplay">------</strong>
+      </div>
+
+      <div class="otp-wrap">
+        <input class="otp-input" type="tel" maxlength="1" id="o1" oninput="otpInput(this,1)" onkeydown="otpKey(event,1)"/>
+        <input class="otp-input" type="tel" maxlength="1" id="o2" oninput="otpInput(this,2)" onkeydown="otpKey(event,2)"/>
+        <input class="otp-input" type="tel" maxlength="1" id="o3" oninput="otpInput(this,3)" onkeydown="otpKey(event,3)"/>
+        <input class="otp-input" type="tel" maxlength="1" id="o4" oninput="otpInput(this,4)" onkeydown="otpKey(event,4)"/>
+        <input class="otp-input" type="tel" maxlength="1" id="o5" oninput="otpInput(this,5)" onkeydown="otpKey(event,5)"/>
+        <input class="otp-input" type="tel" maxlength="1" id="o6" oninput="otpInput(this,6)" onkeydown="otpKey(event,6)"/>
+      </div>
+
+      <button class="main-btn" onclick="verifyOTP()" id="verifyBtn">Verify & Login ✅</button>
+
+      <div class="resend-row">
+        OTP nahi aaya? <button class="resend-btn" id="resendBtn" onclick="resendOTP()" disabled>Resend (<span id="timer">30</span>s)</button>
+      </div>
+      <button class="back-btn" onclick="goBack()">← Wapis jao</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE 3: MAIN APP ========== -->
+<div class="page" id="appPage">
+  <div class="hero">
+    <div class="hero-emoji">🚀</div>
+    <h1>Sab kuch <span>Abhi</span> milega!</h1>
+    <p>Prayagraj ke students ke liye — tiffin, stationery, aur zaroorat ki cheezein seedha hostel tak.</p>
+    <div class="hero-badges">
+      <div class="badge">🍱 Ghar ka Khana</div>
+      <div class="badge">📚 Stationery</div>
+      <div class="badge">⚡ Fast Delivery</div>
+      <div class="badge">💰 Sasta & Badhiya</div>
+    </div>
+  </div>
+
+  <div class="form-section" id="orderForm">
+    <!-- STEP 1 -->
+    <div class="step-card">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Apni Details Bharo</div></div>
+      <div class="form-group"><label>Tumhara Naam</label><input type="text" id="userName" placeholder="Jaise: Rahul Kumar"/></div>
+      <div class="form-group"><label>Phone Number</label><input type="tel" id="userPhone" placeholder="Auto-fill ho jayega" readonly style="background:#f0f0f0; color:var(--muted)"/></div>
+      <div class="form-group"><label>College / Hostel</label><input type="text" id="userCollege" placeholder="Jaise: United Institute of Management"/></div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-card">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Delivery Location</div></div>
+      <div class="form-group">
+        <label>Apna Address / Room No.</label>
+        <div class="location-row">
+          <input type="text" id="userLocation" placeholder="Room no., hostel name, area..."/>
+          <button class="locate-btn" onclick="getLocation()" title="GPS se location lo">📍</button>
+        </div>
+        <small style="color:var(--muted); font-size:0.75rem; margin-top:0.4rem; display:block;">📍 button dabao GPS location ke liye</small>
+      </div>
+      <div class="form-group">
+        <label>Delivery Time</label>
+        <select id="deliveryTime">
+          <option value="">-- Select karo --</option>
+          <option>Abhi chahiye (30-45 min)</option>
+          <option>Breakfast (8:00 - 9:00 AM)</option>
+          <option>Lunch (12:30 - 1:30 PM)</option>
+          <option>Evening Snacks (5:00 - 6:00 PM)</option>
+          <option>Dinner (8:00 - 9:00 PM)</option>
+          <option>Kal Subah</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-card">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Kya Chahiye?</div></div>
+      <div class="category-grid">
+        <button class="cat-btn" onclick="selectCategory('tiffin', this)"><span class="cat-icon">🍱</span><span class="cat-name">Tiffin / Khana</span><span class="cat-sub">Ghar jaisa khana</span></button>
+        <button class="cat-btn" onclick="selectCategory('stationery', this)"><span class="cat-icon">📚</span><span class="cat-name">Stationery</span><span class="cat-sub">Pen, copies, prints</span></button>
+        <button class="cat-btn" onclick="selectCategory('snacks', this)"><span class="cat-icon">🍜</span><span class="cat-name">Snacks</span><span class="cat-sub">Maggi, chai, biscuit</span></button>
+        <button class="cat-btn" onclick="selectCategory('custom', this)"><span class="cat-icon">✏️</span><span class="cat-name">Kuch Aur</span><span class="cat-sub">Apna item batao</span></button>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-card items-section" id="itemsSection">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title" id="itemsTitle">Items Choose Karo</div></div>
+      <div class="item-list" id="itemList"></div>
+      <div class="add-custom">
+        <label>Apna Item Add Karo</label>
+        <div class="custom-row">
+          <input type="text" id="customItem" placeholder="Item ka naam likho..."/>
+          <button class="add-btn" onclick="addCustomItem()">+ Add</button>
+        </div>
+      </div>
+      <div class="summary-box" id="summaryBox" style="display:none">
+        <div class="summary-title">Order Summary</div>
+        <ul class="summary-items" id="summaryList"></ul>
+        <div class="summary-total"><span>Total</span><span id="totalPrice">₹0</span></div>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step-card" id="noteCard" style="display:none">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">Koi Special Note?</div></div>
+      <div class="form-group"><label>Instructions (Optional)</label><textarea id="specialNote" placeholder="Jaise: kam mirch dalna, extra roti..."></textarea></div>
+      <button class="submit-btn" onclick="placeOrder()">🛵 Order Place Karo</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">🎉</div>
+    <h2>Order Ho Gaya!</h2>
+    <p>Tumhara order receive ho gaya hai.<br/>Delivery boy jald hi aayega!</p>
+    <div class="order-id" id="orderId">Order #AH0000</div>
+    <p style="font-size:0.85rem; margin-bottom:1.5rem;">📞 Koi problem? Call karo: <strong>+91 98765 43210</strong></p>
+    <button class="new-order-btn" onclick="resetOrder()">Naya Order Karo</button>
+  </div>
+
+  <footer>Made with ❤️ for Students of Prayagraj &nbsp;|&nbsp; AbhiHelper © 2026</footer>
+</div>
+
+<script>
+  // ===== STATE =====
+  let currentOTP = '';
+  let loggedInPhone = '';
+  let timerInterval = null;
+  let cart = {};
+  let currentCategory = null;
+  const menuData = {
+    tiffin: [
+      { name: "Dal Chawal", price: 60 }, { name: "Roti Sabzi (4 roti)", price: 50 },
+      { name: "Rajma Chawal", price: 65 }, { name: "Chole Chawal", price: 65 },
+      { name: "Paratha (2 pcs) + Achaar", price: 40 }, { name: "Full Thali", price: 90 },
+    ],
+    stationery: [
+      { name: "A4 Photocopy (10 pages)", price: 10 }, { name: "Classmate Copy (200 pages)", price: 45 },
+      { name: "Reynolds Pen (Pack of 5)", price: 30 }, { name: "Highlighter Set", price: 40 },
+      { name: "Stapler + Pins", price: 35 }, { name: "A4 Printing (Color, 1 page)", price: 15 },
+    ],
+    snacks: [
+      { name: "Maggi (2 pack)", price: 28 }, { name: "Chai (2 cups)", price: 20 },
+      { name: "Biscuit Pack (Parle G)", price: 10 }, { name: "Kurkure + Cold Drink", price: 35 },
+      { name: "Bread + Butter", price: 25 }, { name: "Samosa (2 pcs)", price: 20 },
+    ],
+    custom: []
+  };
+
+  // ===== PAGE NAVIGATION =====
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // ===== OTP LOGIC =====
+  function generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  function sendOTP() {
+    const phone = document.getElementById('loginPhone').value.trim();
+    if (phone.length !== 10) { alert('10 digit ka valid mobile number dalo!'); return; }
+
+    currentOTP = generateOTP();
+    loggedInPhone = phone;
+
+    // Demo: show OTP on screen (real mein Fast2SMS se jayega)
+    document.getElementById('demoOtpDisplay').textContent = currentOTP;
+    document.getElementById('otpSubtext').textContent = `+91 ${phone} par OTP bheja gaya (Demo Mode)`;
+
+    // Clear OTP inputs
+    for (let i = 1; i <= 6; i++) {
+      document.getElementById('o' + i).value = '';
+      document.getElementById('o' + i).classList.remove('filled');
+    }
+
+    showPage('otpPage');
+    setTimeout(() => document.getElementById('o1').focus(), 300);
+    startTimer();
+  }
+
+  function otpInput(el, num) {
+    el.value = el.value.replace(/\D/g, '');
+    if (el.value) {
+      el.classList.add('filled');
+      if (num < 6) document.getElementById('o' + (num + 1)).focus();
+      else verifyOTP(); // auto verify on last digit
+    } else {
+      el.classList.remove('filled');
+    }
+  }
+
+  function otpKey(e, num) {
+    if (e.key === 'Backspace' && !document.getElementById('o' + num).value && num > 1) {
+      document.getElementById('o' + (num - 1)).focus();
+    }
+  }
+
+  function getEnteredOTP() {
+    let otp = '';
+    for (let i = 1; i <= 6; i++) otp += document.getElementById('o' + i).value;
+    return otp;
+  }
+
+  function verifyOTP() {
+    const entered = getEnteredOTP();
+    if (entered.length < 6) { alert('6-digit OTP pura bharo!'); return; }
+    if (entered === currentOTP) {
+      // Login success!
+      document.getElementById('navUser').textContent = '📱 +91 ' + loggedInPhone;
+      document.getElementById('navUser').style.display = 'inline';
+      document.getElementById('navLogout').style.display = 'inline';
+      document.getElementById('navTag').style.display = 'none';
+      document.getElementById('userPhone').value = loggedInPhone;
+      clearInterval(timerInterval);
+      showPage('appPage');
+    } else {
+      alert('❌ Galat OTP! Phir se try karo.');
+      for (let i = 1; i <= 6; i++) {
+        document.getElementById('o' + i).value = '';
+        document.getElementById('o' + i).classList.remove('filled');
+      }
+      document.getElementById('o1').focus();
+    }
+  }
+
+  function startTimer() {
+    let seconds = 30;
+    document.getElementById('timer').textContent = seconds;
+    document.getElementById('resendBtn').disabled = true;
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      seconds--;
+      document.getElementById('timer').textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(timerInterval);
+        document.getElementById('resendBtn').disabled = false;
+        document.getElementById('resendBtn').textContent = 'Resend OTP';
+      }
+    }, 1000);
+  }
+
+  function resendOTP() {
+    currentOTP = generateOTP();
+    document.getElementById('demoOtpDisplay').textContent = currentOTP;
+    document.getElementById('resendBtn').textContent = 'Resend (30s)';
+    startTimer();
+    alert('Naya OTP generate hua! Upar dekho 👆');
+  }
+
+  function goBack() {
+    clearInterval(timerInterval);
+    showPage('loginPage');
+  }
+
+  function logout() {
+    loggedInPhone = '';
+    currentOTP = '';
+    document.getElementById('navUser').style.display = 'none';
+    document.getElementById('navLogout').style.display = 'none';
+    document.getElementById('navTag').style.display = 'inline';
+    document.getElementById('loginPhone').value = '';
+    showPage('loginPage');
+  }
+
+  // ===== ORDER LOGIC =====
+  function selectCategory(cat, btn) {
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentCategory = cat;
+    cart = {};
+    renderItems(cat);
+    document.getElementById('itemsSection').classList.add('show');
+    document.getElementById('noteCard').style.display = 'block';
+    document.getElementById('summaryBox').style.display = 'none';
+    const titles = { tiffin: '🍱 Khana Choose Karo', stationery: '📚 Stationery Choose Karo', snacks: '🍜 Snacks Choose Karo', custom: '✏️ Apna Item Batao' };
+    document.getElementById('itemsTitle').textContent = titles[cat];
+    setTimeout(() => document.getElementById('itemsSection').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+
+  function renderItems(cat) {
+    const list = document.getElementById('itemList');
+    list.innerHTML = '';
+    const items = menuData[cat];
+    if (!items || items.length === 0) { list.innerHTML = '<p style="color:var(--muted); font-size:0.9rem;">Neeche apna item add karo 👇</p>'; return; }
+    items.forEach((item, i) => {
+      cart[i] = cart[i] || 0;
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = `<div class="item-name">${item.name}</div><div class="item-price">₹${item.price}</div><div class="qty-control"><button class="qty-btn" onclick="changeQty(${i}, -1)">−</button><span class="qty-num" id="qty-${i}">0</span><button class="qty-btn" onclick="changeQty(${i}, 1)">+</button></div>`;
+      list.appendChild(row);
+    });
+  }
+
+  function changeQty(index, delta) {
+    cart[index] = Math.max(0, (cart[index] || 0) + delta);
+    document.getElementById(`qty-${index}`).textContent = cart[index];
+    updateSummary();
+  }
+
+  function addCustomItem() {
+    const input = document.getElementById('customItem');
+    const name = input.value.trim();
+    if (!name) return;
+    menuData[currentCategory].push({ name, price: 0 });
+    input.value = '';
+    renderItems(currentCategory);
+    updateSummary();
+  }
+
+  function updateSummary() {
+    const items = menuData[currentCategory] || [];
+    let total = 0, hasItems = false;
+    const summaryList = document.getElementById('summaryList');
+    summaryList.innerHTML = '';
+    items.forEach((item, i) => {
+      const qty = cart[i] || 0;
+      if (qty > 0) {
+        hasItems = true;
+        const li = document.createElement('li');
+        const sub = item.price * qty;
+        total += sub;
+        li.innerHTML = `<span>${item.name} × ${qty}</span><span>${item.price > 0 ? '₹'+sub : 'TBD'}</span>`;
+        summaryList.appendChild(li);
+      }
+    });
+    document.getElementById('summaryBox').style.display = hasItems ? 'block' : 'none';
+    document.getElementById('totalPrice').textContent = total > 0 ? '₹' + total : 'TBD';
+  }
+
+  function getLocation() {
+    const btn = document.querySelector('.locate-btn');
+    btn.textContent = '⏳';
+    if (!navigator.geolocation) { alert('GPS support nahi karta.'); btn.textContent = '📍'; return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { document.getElementById('userLocation').value = `📍 Lat: ${pos.coords.latitude.toFixed(5)}, Lon: ${pos.coords.longitude.toFixed(5)}`; btn.textContent = '✅'; setTimeout(() => btn.textContent = '📍', 2000); },
+      () => { alert('Location access deny hua. Manually type karo.'); btn.textContent = '📍'; }
+    );
+  }
+
+  function placeOrder() {
+    const name = document.getElementById('userName').value.trim();
+    const location = document.getElementById('userLocation').value.trim();
+    const time = document.getElementById('deliveryTime').value;
+    if (!name) { alert('Naam bharo!'); return; }
+    if (!location) { alert('Location bharo!'); return; }
+    if (!time) { alert('Delivery time select karo!'); return; }
+    if (!currentCategory) { alert('Kya chahiye select karo!'); return; }
+    const items = menuData[currentCategory] || [];
+    const hasOrder = items.some((_, i) => (cart[i] || 0) > 0);
+    if (!hasOrder) { alert('Koi item select karo!'); return; }
+    const orderId = 'AH' + Date.now().toString().slice(-6);
+    document.getElementById('orderId').textContent = 'Order #' + orderId;
+    document.getElementById('orderForm').style.display = 'none';
+    const s = document.getElementById('successScreen');
+    s.classList.add('show');
+    s.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function resetOrder() {
+    document.getElementById('orderForm').style.display = 'block';
+    document.getElementById('successScreen').classList.remove('show');
+    document.getElementById('userName').value = '';
+    document.getElementById('userCollege').value = '';
+    document.getElementById('userLocation').value = '';
+    document.getElementById('deliveryTime').value = '';
+    document.getElementById('specialNote').value = '';
+    document.getElementById('itemsSection').classList.remove('show');
+    document.getElementById('noteCard').style.display = 'none';
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    cart = {}; currentCategory = null;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
